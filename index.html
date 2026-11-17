@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grocery Price List | আমাদের গ্রোসারি শপ</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Hind Siliguri for clean Bengali & Inter for crisp numbers/English -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Hind Siliguri', 'Inter', sans-serif;
+      background-color: #F8FAFC;
+      color: #0F172A;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .font-num {
+      font-family: 'Inter', 'Hind Siliguri', sans-serif;
+    }
+    /* Hide scrollbar for horizontal category pills while keeping scroll functionality */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col pb-28">
+
+  <!-- ==================== TOP STORE HEADER ==================== -->
+  <header class="bg-emerald-800 text-white shadow-md">
+    <div class="max-w-3xl mx-auto px-4 py-4 sm:py-5">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <div class="flex items-center gap-2 mb-1.5">
+            <div class="inline-flex items-center gap-1.5 bg-emerald-900/80 border border-emerald-600/50 text-emerald-100 text-xs font-medium px-2.5 py-0.5 rounded-full">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span id="syncStatusText">লাইভ আপডেটেড প্রাইস লিস্ট</span>
+            </div>
+            <!-- Manual Refresh Button to instantly bypass Google Sheet cache -->
+            <button id="manualRefreshBtn" type="button" title="দাম আপডেট করতে ক্লিক করুন"
+                    class="inline-flex items-center gap-1 bg-emerald-700 hover:bg-emerald-600 text-emerald-100 text-[11px] font-medium px-2 py-0.5 rounded-full border border-emerald-600 transition active:scale-95">
+              <svg id="refreshIcon" class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span>রিফ্রেশ</span>
+            </button>
+          </div>
+          <h1 id="shopTitleDisplay" class="text-xl sm:text-2xl font-bold tracking-tight leading-snug">
+            আমাদের গ্রোসারি শপ (Grocery Shop)
+          </h1>
+          <p id="lastUpdatedDisplay" class="text-emerald-100 text-xs sm:text-sm mt-0.5">
+            পছন্দের পণ্য খুঁজে সরাসরি WhatsApp বা Messenger-এ অর্ডার করুন
+          </p>
+        </div>
+
+        <!-- Direct Contact Buttons -->
+        <div class="flex items-center gap-2 shrink-0">
+          <a id="headerWhatsappBtn" href="https://wa.me/8801812948043" target="_blank" rel="noopener noreferrer"
+             class="inline-flex items-center justify-center gap-1.5 bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-white font-semibold text-xs sm:text-sm px-3.5 py-2.5 rounded-xl shadow-sm transition">
+            <!-- WhatsApp SVG Icon -->
+            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.274.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.1.824z"/></svg>
+            <span>WhatsApp</span>
+          </a>
+
+          <a id="headerMessengerBtn" href="https://m.me/yourpagename" target="_blank" rel="noopener noreferrer"
+             class="inline-flex items-center justify-center gap-1.5 bg-white/15 hover:bg-white/25 active:scale-95 text-white font-semibold text-xs sm:text-sm px-3.5 py-2.5 rounded-xl border border-white/20 transition">
+            <!-- Messenger SVG Icon -->
+            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.36 2 2 6.13 2 11.7c0 2.91 1.19 5.44 3.14 7.17.16.13.26.35.27.57l.05 1.78c.04.57.61.94 1.13.71l1.98-.87c.17-.08.36-.1.55-.06.91.25 1.87.38 2.88.38 5.64 0 10-4.13 10-9.7S17.64 2 12 2zm6 7.46l-2.93 4.67c-.47.73-1.47.92-2.17.4l-2.33-1.75a.6.6 0 0 0-.72 0l-3.15 2.4c-.42.32-.97-.18-.69-.63l2.93-4.67c.47-.73 1.47-.92 2.17-.4l2.33 1.75a.6.6 0 0 0 .72 0l3.15-2.4c.42-.32.97.18.69.63z"/></svg>
+            <span>Messenger</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== STICKY SEARCH & CATEGORY FILTER BAR ==================== -->
+  <div class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
+    <div class="max-w-3xl mx-auto px-4 pt-3 pb-2.5 space-y-2.5">
+      <!-- Live Search Input -->
+      <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 103.5 10.5a7.5 7.5 0 0013.15 6.15z" />
+          </svg>
+        </div>
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="পণ্য খুঁজুন... যেমন: চাল, তেল, ডাল, চিনি, Rice, Oil"
+          class="w-full pl-10 pr-10 py-2.5 bg-slate-100 hover:bg-slate-200/70 focus:bg-white border border-slate-200 focus:border-emerald-600 rounded-xl text-sm sm:text-base text-slate-800 placeholder-slate-400 outline-none transition"
+        />
+        <button
+          id="clearSearchBtn"
+          type="button"
+          aria-label="Clear search"
+          class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Horizontal Scrollable Category Pills -->
+      <div id="categoryPills" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-0.5">
+        <!-- Dynamically populated category buttons -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MAIN CONTENT AREA ==================== -->
+  <main class="flex-1 max-w-3xl w-full mx-auto px-4 pt-4">
+    <!-- Result Counter & Helper Note -->
+    <div class="flex items-center justify-between text-xs sm:text-sm text-slate-500 mb-3">
+      <p id="itemCountDisplay">মোট ২৪টি পণ্য দেখানো হচ্ছে</p>
+      <p class="text-emerald-700 font-medium">একাধিক পণ্য নিতে "+ লিস্টে যোগ করুন" চাপুন</p>
+    </div>
+
+    <!-- Loading Skeleton -->
+    <div id="loadingState" class="hidden space-y-3">
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 animate-pulse h-24"></div>
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 animate-pulse h-24"></div>
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 animate-pulse h-24"></div>
+    </div>
+
+    <!-- Empty Search Result State -->
+    <div id="emptyState" class="hidden bg-white rounded-2xl border border-slate-200 p-8 text-center my-4">
+      <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 103.5 10.5a7.5 7.5 0 0013.15 6.15z" />
+        </svg>
+      </div>
+      <h3 class="text-base font-semibold text-slate-800">দুঃখিত, কোনো পণ্য পাওয়া যায়নি</h3>
+      <p class="text-sm text-slate-500 mt-1">অন্য কোনো নামে খুঁজে দেখুন অথবা সব ক্যাটাগরি সিলেক্ট করুন।</p>
+      <button id="resetFiltersBtn" type="button"
+              class="mt-4 inline-flex items-center px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-medium rounded-xl transition">
+        সব পণ্য দেখুন
+      </button>
+    </div>
+
+    <!-- Product Cards List -->
+    <div id="productList" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <!-- Product cards dynamically injected here -->
+    </div>
+  </main>
+
+  <!-- ==================== TOAST NOTIFICATION (No alert() used) ==================== -->
+  <div id="toastNotification"
+       class="fixed top-20 left-1/2 -translate-x-1/2 z-50 hidden bg-slate-900 text-white text-xs sm:text-sm font-medium px-4 py-2.5 rounded-xl shadow-lg transition-opacity duration-200">
+    অর্ডার লিস্ট কপি হয়েছে!
+  </div>
+
+  <!-- ==================== FLOATING BOTTOM ORDER BAR ==================== -->
+  <div id="floatingOrderBar"
+       class="fixed bottom-0 inset-x-0 z-40 hidden bg-white border-t border-slate-200 shadow-[0_-6px_20px_rgba(15,23,42,0.08)]">
+    <div class="max-w-3xl mx-auto px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+      <!-- Cart Summary -->
+      <div class="flex items-center justify-between sm:justify-start gap-4">
+        <div>
+          <span class="text-xs text-slate-500 block">নির্বাচিত পণ্য</span>
+          <span id="cartTotalItems" class="text-sm sm:text-base font-bold text-slate-800 font-num">০ টি আইটেম</span>
+        </div>
+        <div class="h-7 w-px bg-slate-200"></div>
+        <div>
+          <span class="text-xs text-slate-500 block">আনুমানিক মোট দাম</span>
+          <span id="cartTotalPrice" class="text-base sm:text-lg font-bold text-emerald-700 font-num">৳ ০</span>
+        </div>
+        <button id="clearCartBtn" type="button"
+                class="sm:hidden text-xs text-rose-600 hover:text-rose-700 font-medium underline ml-auto">
+          মুছুন
+        </button>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2">
+        <button id="clearCartDesktopBtn" type="button"
+                class="hidden sm:inline-flex items-center justify-center px-3 py-2.5 text-xs font-medium text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition">
+          মুছুন
+        </button>
+
+        <button id="copyOrderListBtn" type="button"
+                class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-800 text-xs sm:text-sm font-semibold rounded-xl transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+          <span>লিস্ট কপি (Messenger)</span>
+        </button>
+
+        <button id="sendWhatsappOrderBtn" type="button"
+                class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white text-xs sm:text-sm font-bold rounded-xl shadow-sm transition">
+          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.274.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.1.824z"/></svg>
+          <span>WhatsApp-এ অর্ডার পাঠান</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SHOP CONFIGURATION & APP LOGIC ==================== -->
+  <script>
+    /**
+     * ============================================================================
+     * সহজ সেটআপ (SHOP CONFIGURATION) - আপনার লাইভ Google Sheet কানেক্ট করা হয়েছে
+     * ============================================================================
+     */
+    let SHOP_NAME = "আমাদের গ্রোসারি শপ (Grocery Shop)";
+    let WHATSAPP_NUMBER = "8801812948043"; // দেশের কোড (88) সহ নম্বর
+    let MESSENGER_LINK = "https://m.me/yourpagename"; // আপনার ফেসবুক পেজের মেসেঞ্জার লিংক
+
+    // আপনার লাইভ প্রকাশিত Google Sheet CSV লিংক
+    const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQRE-qhsJRgZ_PJ12JTb37u7RCoSbd3V7uvPhR7sDfMBCkkAg0hRTFcTYs8EjmPULINdcZK-QbrYRoL/pub?output=csv";
+
+    /**
+     * ============================================================================
+     * বিল্ট-ইন স্যাম্পল গ্রোসারি তালিকা (ইন্টারনেট বা শিট লোড না হলে ব্যাকআপ হিসেবে কাজ করবে)
+     * ============================================================================
+     */
+    const SAMPLE_PRODUCTS = [
+      { id: 1, category: "চাল (Rice)", name: "মিনিকেট চাল (Miniket Rice)", size: "১ কেজি", price: 75 },
+      { id: 2, category: "চাল (Rice)", name: "নাজিরশাইল চাল (Nazirshail Rice)", size: "১ কেজি", price: 85 },
+      { id: 3, category: "চাল (Rice)", name: "চিনিগুঁড়া পোলাও চাল (Chinigura Rice)", size: "১ কেজি", price: 140 },
+      { id: 4, category: "ডাল (Lentils)", name: "মসুর ডাল - দেশি (Masoor Dal - Local)", size: "১ কেজি", price: 145 },
+      { id: 5, category: "ডাল (Lentils)", name: "মুগ ডাল (Moong Dal)", size: "১ কেজি", price: 160 },
+      { id: 6, category: "ডাল (Lentils)", name: "ছোলার ডাল / বুট (Chola Dal)", size: "১ কেজি", price: 110 },
+      { id: 7, category: "তেল (Oil)", name: "সয়াবিন তেল - বোতল (Soybean Oil)", size: "১ লিটার", price: 175 },
+      { id: 8, category: "তেল (Oil)", name: "সয়াবিন তেল - বোতল (Soybean Oil)", size: "৫ লিটার", price: 850 },
+      { id: 9, category: "তেল (Oil)", name: "সরিষার তেল (Mustard Oil)", size: "৫০০ মিলি", price: 140 },
+      { id: 10, category: "আটা ও ময়দা", name: "আটা - প্যাকেট (Atta)", size: "২ কেজি", price: 120 },
+      { id: 11, category: "আটা ও ময়দা", name: "ময়দা - প্যাকেট (Maida)", size: "১ কেজি", price: 70 },
+      { id: 12, category: "চিনি ও লবণ", name: "চিনি (Sugar)", size: "১ কেজি", price: 125 },
+      { id: 13, category: "চিনি ও লবণ", name: "আয়োডিনযুক্ত লবণ (Salt)", size: "১ কেজি", price: 40 },
+      { id: 14, category: "মসলা (Spices)", name: "হলুদ গুঁড়া (Turmeric Powder)", size: "২০০ গ্রাম", price: 90 },
+      { id: 15, category: "মসলা (Spices)", name: "মরিচ গুঁড়া (Chili Powder)", size: "২০০ গ্রাম", price: 110 },
+      { id: 16, category: "মসলা (Spices)", name: "ধনিয়া গুঁড়া (Coriander Powder)", size: "২০০ গ্রাম", price: 75 },
+      { id: 17, category: "মসলা (Spices)", name: "জিরা (Cumin)", size: "১০০ গ্রাম", price: 120 },
+      { id: 18, category: "চা ও দুধ", name: "চা পাতা (Tea Leaves)", size: "৪০০ গ্রাম", price: 190 },
+      { id: 19, category: "চা ও দুধ", name: "গুঁড়া দুধ (Milk Powder)", size: "৫০০ গ্রাম", price: 410 },
+      { id: 20, category: "নিত্যপ্রয়োজনীয়", name: "ডিম (Farm Eggs)", size: "১ ডজন (১২টি)", price: 150 },
+      { id: 21, category: "নিত্যপ্রয়োজনীয়", name: "পেঁয়াজ - দেশি (Onion)", size: "১ কেজি", price: 100 },
+      { id: 22, category: "নিত্যপ্রয়োজনীয়", name: "রসুন (Garlic)", size: "১ কেজি", price: 220 },
+      { id: 23, category: "নিত্যপ্রয়োজনীয়", name: "আদা (Ginger)", size: "৫০০ গ্রাম", price: 110 },
+      { id: 24, category: "নিত্যপ্রয়োজনীয়", name: "আলু (Potato)", size: "১ কেজি", price: 60 }
+    ];
+
+    /**
+     * ============================================================================
+     * APPLICATION STATE
+     * ============================================================================
+     */
+    let allProducts = [];
+    let selectedCategory = "ALL";
+    let searchQuery = "";
+    let cart = {}; // { productId: quantity }
+
+    /**
+     * ============================================================================
+     * HELPER FUNCTIONS (Bengali digits, Price parsing, CSV parsing)
+     * ============================================================================
+     */
+    function toBengaliDigits(num) {
+      const bengaliMap = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+      return String(num).replace(/\d/g, d => bengaliMap[d]);
+    }
+
+    // Extract numeric price from strings like "৳ ৭৫", "৳75", "175", "১৪৫"
+    function parseNumericPrice(priceStr) {
+      if (typeof priceStr === "number") return priceStr;
+      if (!priceStr) return 0;
+      const engDigits = String(priceStr).replace(/[০-৯]/g, d => "০১২৩৪৫৬৭৮৯".indexOf(d));
+      const cleaned = engDigits.replace(/[^0-9.]/g, "");
+      const parsed = parseFloat(cleaned);
+      return isNaN(parsed) ? 0 : parsed;
+    }
+
+    // Parse CSV text handling quoted fields and commas accurately
+    function parseCSV(text) {
+      const rows = [];
+      let currentRow = [];
+      let currentVal = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const nextChar = text[i + 1];
+
+        if (char === '"') {
+          if (inQuotes && nextChar === '"') {
+            currentVal += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === ',' && !inQuotes) {
+          currentRow.push(currentVal.trim());
+          currentVal = "";
+        } else if ((char === '\r' || char === '\n') && !inQuotes) {
+          if (char === '\r' && nextChar === '\n') i++;
+          currentRow.push(currentVal.trim());
+          if (currentRow.some(cell => cell !== "")) {
+            rows.push(currentRow);
+          }
+          currentRow = [];
+          currentVal = "";
+        } else {
+          currentVal += char;
+        }
+      }
+
+      if (currentVal !== "" || currentRow.length > 0) {
+        currentRow.push(currentVal.trim());
+        if (currentRow.some(cell => cell !== "")) {
+          rows.push(currentRow);
+        }
+      }
+
+      return rows;
+    }
+
+    // Convert parsed CSV rows into structured product objects & extract top-row shop info
+    function extractDataFromCSV(csvText) {
+      const rows = parseCSV(csvText);
+      const products = [];
+      let startIndex = 0;
+      const meta = {
+        shopName: null,
+        lastUpdated: null,
+        whatsappNumber: null,
+        messengerLink: null
+      };
+
+      // Detect table header row & read top metadata rows (Rows 1-5)
+      for (let i = 0; i < Math.min(rows.length, 15); i++) {
+        const rowJoined = rows[i].join(" ").trim();
+        const rowLower = rows[i].map(c => c.toLowerCase());
+
+        if (
+          rowLower.some(c => c.includes("product") || c.includes("পণ্যের নাম")) &&
+          rowLower.some(c => c.includes("price") || c.includes("দাম"))
+        ) {
+          startIndex = i + 1;
+          break;
+        }
+
+        // Row 1: Shop Title (ignore default placeholder bracket text)
+        if (i === 0 && rowJoined && !rowJoined.includes("[তোমার দোকানের নাম")) {
+          const cleanTitle = rowJoined.replace(/\s*-\s*Customer Price List/i, "").trim();
+          if (cleanTitle) meta.shopName = cleanTitle;
+        }
+
+        // Extract Last Updated note if present
+        if (rowJoined.toLowerCase().includes("last updated")) {
+          meta.lastUpdated = rowJoined;
+        }
+
+        // Extract WhatsApp number from wa.me link if updated in sheet
+        const waMatch = rowJoined.match(/wa\.me\/(\d{10,15})/i);
+        if (waMatch && waMatch[1]) {
+          meta.whatsappNumber = waMatch[1];
+        }
+
+        // Extract Messenger link if updated in sheet (ignore placeholder)
+        const mMatch = rowJoined.match(/(https?:\/\/(?:www\.)?m\.me\/[^\s,]+)/i);
+        if (mMatch && mMatch[1] && !mMatch[1].includes("yourpagename")) {
+          meta.messengerLink = mMatch[1];
+        }
+      }
+
+      for (let i = startIndex; i < rows.length; i++) {
+        const row = rows[i];
+        if (row.length < 2) continue;
+
+        let category = "অন্যান্য (General)";
+        let name = "";
+        let size = "";
+        let rawPrice = "";
+
+        if (row.length >= 4) {
+          [category, name, size, rawPrice] = row;
+        } else if (row.length === 3) {
+          [name, size, rawPrice] = row;
+        } else {
+          [name, rawPrice] = row;
+        }
+
+        const price = parseNumericPrice(rawPrice);
+        if (!name || price <= 0) continue;
+
+        products.push({
+          id: i + 1,
+          category: category || "অন্যান্য (General)",
+          name: name,
+          size: size || "১ পিস / কেজি",
+          price: price
+        });
+      }
+
+      return { products, meta };
+    }
+
+    /**
+     * ============================================================================
+     * INITIALIZE & FETCH LIVE DATA
+     * ============================================================================
+     */
+    async function fetchLiveData(isBackground = false) {
+      const loadingEl = document.getElementById("loadingState");
+      const statusTextEl = document.getElementById("syncStatusText");
+      const lastUpdatedEl = document.getElementById("lastUpdatedDisplay");
+      const refreshIcon = document.getElementById("refreshIcon");
+
+      if (refreshIcon) refreshIcon.classList.add("animate-spin");
+
+      if (GOOGLE_SHEET_CSV_URL && GOOGLE_SHEET_CSV_URL.trim() !== "") {
+        if (!isBackground) loadingEl.classList.remove("hidden");
+        try {
+          // Bypass both Google Sheet server cache & browser cache completely
+          const separator = GOOGLE_SHEET_CSV_URL.includes("?") ? "&" : "?";
+          const liveUrl = `${GOOGLE_SHEET_CSV_URL.trim()}${separator}_t=${Date.now()}&_nocache=${Math.random()}&retry=${Math.floor(Math.random()*1000)}`;
+          const response = await fetch(liveUrl, { cache: "no-store", headers: { "Cache-Control": "no-cache" } });
+          if (!response.ok) throw new Error("Network response was not ok");
+          const csvText = await response.text();
+          const { products: parsedProducts, meta } = extractDataFromCSV(csvText);
+
+          if (meta.shopName) SHOP_NAME = meta.shopName;
+          if (meta.whatsappNumber) WHATSAPP_NUMBER = meta.whatsappNumber;
+          if (meta.messengerLink) MESSENGER_LINK = meta.messengerLink;
+          if (meta.lastUpdated) {
+            lastUpdatedEl.textContent = `${meta.lastUpdated} • সরাসরি WhatsApp বা Messenger-এ অর্ডার করুন`;
+          }
+
+          if (parsedProducts.length > 0) {
+            allProducts = parsedProducts;
+            statusTextEl.textContent = "Google Sheet লাইভ আপডেটেড";
+          } else {
+            throw new Error("No valid products found in CSV");
+          }
+        } catch (error) {
+          console.warn("Google Sheet fetch fallback triggered:", error);
+          if (allProducts.length === 0) {
+            allProducts = [...SAMPLE_PRODUCTS];
+          }
+          statusTextEl.textContent = "লাইভ আপডেটেড প্রাইস লিস্ট";
+        } finally {
+          if (!isBackground) loadingEl.classList.add("hidden");
+          if (refreshIcon) refreshIcon.classList.remove("animate-spin");
+        }
+      } else {
+        if (allProducts.length === 0) {
+          allProducts = [...SAMPLE_PRODUCTS];
+        }
+        if (refreshIcon) refreshIcon.classList.remove("animate-spin");
+      }
+
+      // Apply Shop Config to DOM
+      document.title = `${SHOP_NAME} - Price List`;
+      document.getElementById("shopTitleDisplay").textContent = SHOP_NAME;
+      document.getElementById("headerWhatsappBtn").href = `https://wa.me/${WHATSAPP_NUMBER}`;
+      document.getElementById("headerMessengerBtn").href = MESSENGER_LINK;
+
+      renderCategoryPills();
+      renderProducts();
+    }
+
+    async function initApp() {
+      await fetchLiveData(false);
+      bindEvents();
+
+      // Manual refresh button click listener
+      const manualBtn = document.getElementById("manualRefreshBtn");
+      if (manualBtn) {
+        manualBtn.addEventListener("click", () => {
+          fetchLiveData(false);
+          showToast("নতুন দাম রিফ্রেশ করা হয়েছে!");
+        });
+      }
+
+      // Auto-refresh data in background every 20 seconds
+      setInterval(() => {
+        fetchLiveData(true);
+      }, 20000);
+
+      // Also refresh instantly when user comes back to the tab/browser window
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+          fetchLiveData(true);
+        }
+      });
+    }
+
+    /**
+     * ============================================================================
+     * RENDER CATEGORY PILLS
+     * ============================================================================
+     */
+    function renderCategoryPills() {
+      const container = document.getElementById("categoryPills");
+      const categories = ["ALL", ...new Set(allProducts.map(p => p.category))];
+
+      container.innerHTML = categories.map(cat => {
+        const isActive = selectedCategory === cat;
+        const label = cat === "ALL" ? "সব পণ্য (All)" : cat;
+        const activeClasses = isActive
+          ? "bg-emerald-700 text-white border-emerald-700 shadow-sm"
+          : "bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200/70";
+
+        return `
+          <button
+            type="button"
+            data-category="${escapeHtml(cat)}"
+            class="category-pill shrink-0 px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-medium border transition ${activeClasses}">
+            ${escapeHtml(label)}
+          </button>
+        `;
+      }).join("");
+    }
+
+    /**
+     * ============================================================================
+     * RENDER FILTERED PRODUCT CARDS
+     * ============================================================================
+     */
+    function renderProducts() {
+      const listEl = document.getElementById("productList");
+      const emptyEl = document.getElementById("emptyState");
+      const countEl = document.getElementById("itemCountDisplay");
+
+      const query = searchQuery.toLowerCase().trim();
+
+      const filtered = allProducts.filter(product => {
+        const matchesCat = selectedCategory === "ALL" || product.category === selectedCategory;
+        const matchesSearch =
+          !query ||
+          product.name.toLowerCase().includes(query) ||
+          product.category.toLowerCase().includes(query) ||
+          product.size.toLowerCase().includes(query);
+        return matchesCat && matchesSearch;
+      });
+
+      countEl.textContent = `মোট ${toBengaliDigits(filtered.length)}টি পণ্য দেখানো হচ্ছে`;
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = "";
+        emptyEl.classList.remove("hidden");
+        return;
+      }
+
+      emptyEl.classList.add("hidden");
+
+      listEl.innerHTML = filtered.map(product => {
+        const qtyInCart = cart[product.id] || 0;
+        const singleOrderMsg = encodeURIComponent(
+          `আসসালামু আলাইকুম, আমি ${SHOP_NAME} থেকে নিচের পণ্যটি অর্ডার করতে চাই:\n• ${product.name} (${product.size}) - ৳${product.price}`
+        );
+        const directWhatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${singleOrderMsg}`;
+
+        return `
+          <div class="bg-white rounded-2xl border ${qtyInCart > 0 ? 'border-emerald-500 ring-1 ring-emerald-500/30' : 'border-slate-200'} p-4 shadow-sm hover:shadow-md transition flex flex-col justify-between gap-3">
+            <div>
+              <div class="flex items-start justify-between gap-2">
+                <span class="inline-block text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/70 px-2 py-0.5 rounded-md">
+                  ${escapeHtml(product.category)}
+                </span>
+                <span class="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                  ${escapeHtml(product.size)}
+                </span>
+              </div>
+
+              <h2 class="text-base font-bold text-slate-800 mt-2 leading-snug">
+                ${escapeHtml(product.name)}
+              </h2>
+            </div>
+
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+              <!-- Price -->
+              <div>
+                <span class="text-[11px] text-slate-400 block leading-none">দাম</span>
+                <span class="text-lg font-extrabold text-emerald-700 font-num">
+                  ৳ ${toBengaliDigits(product.price)}
+                </span>
+              </div>
+
+              <!-- Actions: Direct Order + Add to List -->
+              <div class="flex items-center gap-1.5">
+                <a href="${directWhatsappUrl}" target="_blank" rel="noopener noreferrer"
+                   title="সরাসরি WhatsApp-এ অর্ডার করুন"
+                   class="inline-flex items-center justify-center px-2.5 py-2 bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-200 rounded-xl text-xs font-semibold transition">
+                  Order
+                </a>
+
+                ${
+                  qtyInCart === 0
+                    ? `<button type="button" data-action="add" data-id="${product.id}"
+                        class="cart-action-btn inline-flex items-center gap-1 px-3 py-2 bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white text-xs font-semibold rounded-xl shadow-sm transition">
+                        <span>+ লিস্টে যোগ করুন</span>
+                      </button>`
+                    : `<div class="inline-flex items-center bg-emerald-50 border border-emerald-300 rounded-xl overflow-hidden">
+                        <button type="button" data-action="dec" data-id="${product.id}"
+                                class="cart-action-btn px-2.5 py-1.5 text-emerald-800 hover:bg-emerald-200/70 font-bold text-sm transition">
+                          −
+                        </button>
+                        <span class="px-2.5 py-1 text-xs font-bold text-emerald-900 font-num">
+                          ${toBengaliDigits(qtyInCart)}
+                        </span>
+                        <button type="button" data-action="inc" data-id="${product.id}"
+                                class="cart-action-btn px-2.5 py-1.5 text-emerald-800 hover:bg-emerald-200/70 font-bold text-sm transition">
+                          +
+                        </button>
+                      </div>`
+                }
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    /**
+     * ============================================================================
+     * CART MANAGEMENT & FLOATING ORDER BAR
+     * ============================================================================
+     */
+    function updateCart(productId, action) {
+      const current = cart[productId] || 0;
+      if (action === "add" || action === "inc") {
+        cart[productId] = current + 1;
+      } else if (action === "dec") {
+        if (current <= 1) {
+          delete cart[productId];
+        } else {
+          cart[productId] = current - 1;
+        }
+      }
+      renderProducts();
+      renderFloatingBar();
+    }
+
+    function clearCart() {
+      cart = {};
+      renderProducts();
+      renderFloatingBar();
+    }
+
+    function renderFloatingBar() {
+      const barEl = document.getElementById("floatingOrderBar");
+      const totalItemsEl = document.getElementById("cartTotalItems");
+      const totalPriceEl = document.getElementById("cartTotalPrice");
+
+      const entries = Object.entries(cart);
+      if (entries.length === 0) {
+        barEl.classList.add("hidden");
+        return;
+      }
+
+      let totalCount = 0;
+      let totalPrice = 0;
+
+      entries.forEach(([id, qty]) => {
+        const product = allProducts.find(p => p.id === Number(id));
+        if (product) {
+          totalCount += qty;
+          totalPrice += product.price * qty;
+        }
+      });
+
+      totalItemsEl.textContent = `${toBengaliDigits(totalCount)} টি আইটেম`;
+      totalPriceEl.textContent = `৳ ${toBengaliDigits(totalPrice)}`;
+      barEl.classList.remove("hidden");
+    }
+
+    function generateOrderMessage() {
+      const entries = Object.entries(cart);
+      let lines = [`আসসালামু আলাইকুম, *${SHOP_NAME}* থেকে আমার অর্ডার লিস্ট:\n`];
+      let grandTotal = 0;
+      let index = 1;
+
+      entries.forEach(([id, qty]) => {
+        const product = allProducts.find(p => p.id === Number(id));
+        if (product) {
+          const subtotal = product.price * qty;
+          grandTotal += subtotal;
+          lines.push(`${index}. ${product.name} (${product.size}) × ${qty} = ৳${subtotal}`);
+          index++;
+        }
+      });
+
+      lines.push(`\n*মোট আনুমানিক বিল: ৳${grandTotal}*`);
+      lines.push(`\nনাম:\nঠিকানা:\nমোবাইল নম্বর:`);
+      return lines.join("\n");
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById("toastNotification");
+      toast.textContent = message;
+      toast.classList.remove("hidden");
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => {
+        toast.classList.add("hidden");
+      }, 2400);
+    }
+
+    function copyTextToClipboard(text) {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand("copy");
+        showToast("অর্ডার লিস্ট কপি হয়েছে! এখন Messenger-এ পেস্ট করুন।");
+      } catch (err) {
+        showToast("লিস্ট কপি করা সম্ভব হয়নি।");
+      }
+      document.body.removeChild(textarea);
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    /**
+     * ============================================================================
+     * EVENT LISTENERS
+     * ============================================================================
+     */
+    function bindEvents() {
+      const searchInput = document.getElementById("searchInput");
+      const clearSearchBtn = document.getElementById("clearSearchBtn");
+
+      searchInput.addEventListener("input", e => {
+        searchQuery = e.target.value;
+        clearSearchBtn.classList.toggle("hidden", searchQuery.length === 0);
+        renderProducts();
+      });
+
+      clearSearchBtn.addEventListener("click", () => {
+        searchQuery = "";
+        searchInput.value = "";
+        clearSearchBtn.classList.add("hidden");
+        renderProducts();
+        searchInput.focus();
+      });
+
+      document.getElementById("categoryPills").addEventListener("click", e => {
+        const pill = e.target.closest(".category-pill");
+        if (!pill) return;
+        selectedCategory = pill.dataset.category;
+        renderCategoryPills();
+        renderProducts();
+      });
+
+      document.getElementById("resetFiltersBtn").addEventListener("click", () => {
+        selectedCategory = "ALL";
+        searchQuery = "";
+        searchInput.value = "";
+        clearSearchBtn.classList.add("hidden");
+        renderCategoryPills();
+        renderProducts();
+      });
+
+      document.getElementById("productList").addEventListener("click", e => {
+        const btn = e.target.closest(".cart-action-btn");
+        if (!btn) return;
+        const id = Number(btn.dataset.id);
+        const action = btn.dataset.action;
+        updateCart(id, action);
+      });
+
+      document.getElementById("clearCartBtn").addEventListener("click", clearCart);
+      document.getElementById("clearCartDesktopBtn").addEventListener("click", clearCart);
+
+      document.getElementById("sendWhatsappOrderBtn").addEventListener("click", () => {
+        const msg = generateOrderMessage();
+        const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+        window.open(url, "_blank", "noopener,noreferrer");
+      });
+
+      document.getElementById("copyOrderListBtn").addEventListener("click", () => {
+        const msg = generateOrderMessage();
+        copyTextToClipboard(msg);
+      });
+    }
+
+    // Boot the application on load
+    window.addEventListener("DOMContentLoaded", initApp);
+  </script>
+</body>
+</html>
